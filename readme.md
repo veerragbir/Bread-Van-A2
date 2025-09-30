@@ -6,13 +6,13 @@ A Flask-based backend system for a bread van notification application structured
 
 ### Driver Functionality
 - Schedule drives to specific streets with estimated arrival times
-- Update real-time status (Scheduled, In Progress, Completed)
-- Track current location during active drives
+- Update real-time status and location
+- Manage driving schedules
 
 ### Resident Functionality
-- View scheduled drives for their street (inbox)
-- Request stops for specific drives with optional notes
-- Track driver status and location in real-time
+- View scheduled drives for their street
+- Request stops for specific drives
+- Track driver location and status
 
 ## Dependencies
 * Python3/pip3
@@ -21,39 +21,51 @@ A Flask-based backend system for a bread van notification application structured
 ## Installing Dependencies
 ```bash
 pip install -r requirements.txt
-Configuration Management
-Configuration information is provided via environment variables or config files.
-
-In Development
-When running in development environment, the app uses default_config.py:
-
-python
-SQLALCHEMY_DATABASE_URI = "sqlite:///bread-van.db"
-SECRET_KEY = "secret key"
-JWT_ACCESS_TOKEN_EXPIRES = 7
-ENV = "DEVELOPMENT"
-In Production
-When deploying to production, pass configuration via environment variables in your deployment platform.
-
 Available Commands
-Database Management
+Database Initialization
 bash
-python wsgi.py initdb
+flask init
 User Management
 bash
-python wsgi.py list-users
-Driver Operations
+# Create a resident
+flask user create-resident "Name" "email@example.com" "username" "password" "address"
+
+# Create a driver  
+flask user create-driver "Name" "email@example.com" "username" "password" "vehicle_type" "license_plate"
+
+# List users
+flask user list [all|residents|drivers]
+Schedule Management
 bash
-python wsgi.py schedule-drive <driver_id> <street> <scheduled_time>
-python wsgi.py update-status <schedule_id> <status> [--location LOCATION]
-Resident Operations
+# Create a schedule
+flask schedule create <driver_id> "street" "start_time" "end_time"
+
+# View schedules for a street
+flask schedule view-street "street_name"
+
+# View schedules for a driver
+flask schedule view-driver <driver_id>
+Stop Request Management
 bash
-python wsgi.py view-inbox <resident_id>
-python wsgi.py request-stop <resident_id> <schedule_id> [--notes NOTES]
-python wsgi.py driver-status <schedule_id>
-Utility Commands
+# Request a stop
+flask stop request <resident_id> <schedule_id>
+
+# List stop requests for a resident
+flask stop list-resident <resident_id>
+Location Management
 bash
-python wsgi.py list-schedules
+# Update driver location
+flask location update <driver_id> "location_description"
+
+# Get driver location
+flask location get <driver_id>
+
+# List all driver locations
+flask location list-all
+Testing
+bash
+# Run tests
+flask test user [all|unit|int]
 Running the Project
 For development:
 
@@ -63,11 +75,6 @@ For production using gunicorn:
 
 bash
 gunicorn wsgi:app
-Initializing the Database
-When connecting to a fresh database, run:
-
-bash
-python wsgi.py initdb
 Database Migrations
 If changes to models are made, migrate the database:
 
@@ -75,60 +82,79 @@ bash
 flask db init
 flask db migrate
 flask db upgrade
+Sample Workflow
+Initialize the database with sample data:
+
+bash
+flask init
+Create additional users:
+
+bash
+flask user create-resident "Jane Doe" "jane@example.com" "jane_doe" "password123" "456 Oak Street"
+flask user create-driver "Mike Driver" "mike@breadvan.com" "mike_d" "driverpass" "Bread Van" "VAN123"
+Create a schedule:
+
+bash
+flask schedule create 1 "Main Street" "2024-01-15 09:00:00" "2024-01-15 11:00:00"
+Request a stop:
+
+bash
+flask stop request 2 1
+Update driver location:
+
+bash
+flask location update 1 "Corner of Main Street and 1st Avenue"
 Testing
 Run all tests:
 
 bash
 pytest
+Run specific test types:
+
+bash
+flask test user unit
+flask test user int
+flask test user all
 Generate test coverage report:
 
 bash
 coverage report
 coverage html
-Sample Workflow
-Initialize the database:
-
-bash
-python wsgi.py initdb
-View sample users:
-
-bash
-python wsgi.py list-users
-View resident's inbox:
-
-bash
-python wsgi.py view-inbox 2
-Request a stop:
-
-bash
-python wsgi.py request-stop 2 1 --notes "Need whole wheat bread"
-Update driver status:
-
-bash
-python wsgi.py update-status 1 in_progress --location "Corner of Main and 1st"
-Check driver status:
-
-bash
-python wsgi.py driver-status 1
 Project Structure
 text
 bread_van_app/
 ├── app/
-│   ├── models/          # Database models
+│   ├── models/          # Database models (User, Driver, Resident, Schedule, StopRequest)
 │   ├── controllers/     # Business logic
-│   └── views/          # API endpoints
+│   ├── views/          # API endpoints
+│   └── database.py     # Database configuration
 ├── wsgi.py             # CLI entry point
 ├── config.py           # Configuration
 └── requirements.txt    # Dependencies
+Configuration
+The application uses environment-based configuration. In development, it uses default settings. In production, configure via environment variables:
+
+SQLALCHEMY_DATABASE_URI: Database connection string
+
+SECRET_KEY: Application secret key
+
+ENV: Environment (DEVELOPMENT/PRODUCTION)
+
 Troubleshooting
-Views 404ing
-Ensure new views are imported and added to the views list in main.py.
-
 Database Issues
-If adding models, migrate the database or delete the database file and reinitialize.
+If encountering database errors, reinitialize:
 
+bash
+flask init
 Module Import Errors
-Ensure you're in the correct directory and virtual environment is activated.
+Ensure dependencies are installed:
 
 bash
 pip install -r requirements.txt
+Command Not Found
+Ensure you're in the correct directory and virtual environment is activated.
+
+Deployment
+Deploy to platforms like Render or Heroku by setting the appropriate environment variables and using gunicorn as the production server.
+
+For support or contributions, please refer to the project repository.
