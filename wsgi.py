@@ -28,10 +28,10 @@ from datetime import datetime, timedelta
 app = create_app()
 migrate = get_migrate(app)
 
-# Rest of your code remains exactly the same...
 
 # Initialize database command
 @app.cli.command("init", help="Creates and initializes the database with sample data")
+@with_appcontext
 def initialize():
     db.drop_all()
     db.create_all()
@@ -153,7 +153,7 @@ def create_schedule_command(driver_id, street, start_time, end_time):
         else:
             print(f"Error: {message}")
     except ValueError:
-        print("Error: Invalid datetime format. Use ISO format: YYYY-MM-DD HH:MM:SS")
+        print("Error: Invalid datetime format. Use ISO format: YYYY-MM-DDTHH:MM:SS or YYYY-MM-DD HH:MM:SS")
 
 @schedule_cli.command("view-street", help="View schedules for a street")
 @click.argument("street")
